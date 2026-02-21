@@ -99,10 +99,21 @@ router.post('/', async (req, res, next) => {
       finalPrompt = applyBrandConstraints(finalPrompt, kit);
     }
 
-    // When both images are provided, prepend a style-transfer instruction so the
-    // model knows to keep the product and adopt the reference visual style.
-    if (product_image && reference_image) {
-      finalPrompt = `Professional advertisement featuring the exact product shown in the product image. Apply the visual style, composition, color palette, and layout from the style reference image. ${finalPrompt}`;
+    // English-language enforcement: placed at START and END of prompt since
+    // image models weight prompt boundaries most heavily. Also includes explicit
+    // English example words so the model's text renderer targets English glyphs.
+    const englishPrefix = 'English text only. All words, headlines, and labels in English language.';
+    const englishSuffix = 'Text on image must be in English. Use English words like "Sale", "Shop Now", "Limited Offer", "Free Shipping", "Buy Now", "New Arrival", "Best Deal", "Save", "Discount". No French, no Spanish, no other languages.';
+
+    if (reference_image) {
+      finalPrompt = `${englishPrefix} Create an ad image that is nearly identical to the reference image. Keep the EXACT same layout, design template, color scheme, typography style, composition, and visual structure. Only vary the text content — change the headline, discount numbers, promotional quotes, or call-to-action text to create a subtle variation. Do NOT change the background, graphic elements, shapes, or overall design. ${finalPrompt} ${englishSuffix}`;
+      if (product_image) {
+        finalPrompt += ` Incorporate the product from the product image into the same layout and position as shown in the reference.`;
+      }
+    } else if (product_image) {
+      finalPrompt = `${englishPrefix} Professional advertisement featuring the exact product shown in the product image. ${finalPrompt} ${englishSuffix}`;
+    } else {
+      finalPrompt = `${englishPrefix} ${finalPrompt} ${englishSuffix}`;
     }
 
     const { urls, provider } = await generateWithFallback({
@@ -167,10 +178,19 @@ router.post('/edit', async (req, res, next) => {
     }
 
     const srcImages = Array.isArray(parent.images) ? parent.images : [];
-    // For edits: the previously-generated image becomes the product base,
-    // keep the original reference image for style.
-    const editProductUrl   = srcImages[0]?.url || parent.product_image || undefined;
-    const editReferenceUrl = parent.reference_image || undefined;
+    // For edits: if the parent had a reference image, use it as the primary base
+    // so variations stay faithful to the original reference design.
+    // If no reference, use the previously-generated image as the base.
+    const editReferenceUrl = parent.reference_image || srcImages[0]?.url || undefined;
+    const editProductUrl   = parent.product_image || undefined;
+
+    const englishPrefixEdit = 'English text only. All words, headlines, and labels in English language.';
+    const englishSuffixEdit = 'Text on image must be in English. Use English words like "Sale", "Shop Now", "Limited Offer", "Free Shipping", "Buy Now", "New Arrival", "Best Deal", "Save", "Discount". No French, no Spanish, no other languages.';
+    if (editReferenceUrl) {
+      finalPrompt = `${englishPrefixEdit} Create an ad image that is nearly identical to the reference image. Keep the EXACT same layout, design template, color scheme, typography style, composition, and visual structure. Only vary the text content — change the headline, discount numbers, promotional quotes, or call-to-action text. ${finalPrompt} ${englishSuffixEdit}`;
+    } else {
+      finalPrompt = `${englishPrefixEdit} ${finalPrompt} ${englishSuffixEdit}`;
+    }
 
     const { urls, provider } = await generateWithFallback({
       prompt: finalPrompt,

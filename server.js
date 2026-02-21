@@ -22,6 +22,22 @@ app.use('/api/campaign',    require('./routes/campaign'));
 app.use('/api/intelligence',require('./routes/intelligence'));
 app.use('/api/settings',   require('./routes/settings'));
 
+// ── Image download proxy (avoids CORS issues with external URLs) ─────────
+app.get('/api/download-image', async (req, res, next) => {
+  try {
+    const imageUrl = req.query.url;
+    if (!imageUrl) return res.status(400).json({ error: 'url query param required' });
+    const response = await fetch(imageUrl);
+    if (!response.ok) return res.status(502).json({ error: 'Failed to fetch image' });
+    const contentType = response.headers.get('content-type') || 'image/png';
+    const ext = contentType.includes('jpeg') || contentType.includes('jpg') ? 'jpg' : 'png';
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="generated-ad.${ext}"`);
+    const buffer = Buffer.from(await response.arrayBuffer());
+    res.send(buffer);
+  } catch (err) { next(err); }
+});
+
 // ── Health ──────────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), env: process.env.NODE_ENV });

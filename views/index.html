@@ -459,7 +459,7 @@
           <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;">
             <span>✏️ Prompt</span>
           </div>
-          <textarea id="genPrompt" class="input" rows="5" placeholder="Describe your ad creative — product, mood, style, copy…"></textarea>
+          <textarea id="genPrompt" class="input" rows="5" placeholder="Describe variations you want — e.g. 'Summer sale 50% off', 'Free shipping today only', 'Buy 2 Get 1 Free'…"></textarea>
           <div style="display:flex;gap:8px;margin-top:8px;">
             <button onclick="composePrompt()" class="btn btn-secondary btn-sm" style="flex:1;">✨ AI Compose</button>
             <button onclick="generateConcepts()" class="btn btn-secondary btn-sm" style="flex:1;">💡 Concepts</button>
@@ -469,9 +469,10 @@
         <!-- Images -->
         <div class="card" style="padding:16px;">
           <div class="section-title">🖼️ Reference Images</div>
+          <p style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.4;">Upload a reference ad — generated images will look nearly identical with only text/copy variations (quotes, discounts, CTAs).</p>
           <div style="display:flex;flex-direction:column;gap:10px;">
             <div>
-              <label class="label">Style Reference</label>
+              <label class="label">Style Reference (Ad Template)</label>
               <div id="refDropZone" class="drop-zone" onclick="document.getElementById('refImageInput').click()" ondragover="handleDragOver(event,'refDropZone')" ondrop="handleDrop(event,'refDropZone','refImagePreview','refImgEl')">
                 <svg style="width:20px;height:20px;margin:0 auto 4px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 Drop or click to upload
@@ -1276,6 +1277,15 @@
 <script>
 let currentClientId=null,historyOffset=0,historyTotal=0,brandSaveTimer=null,pendingAssetIds=[],campaignPlan=[],reverseData=null;
 
+function downloadImage(url, filename) {
+  const a = document.createElement('a');
+  a.href = '/api/download-image?url=' + encodeURIComponent(url);
+  a.download = filename || 'generated-ad.png';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
 document.addEventListener('DOMContentLoaded',async()=>{
   await loadClients();
   await loadProfilesForSelect();
@@ -1456,7 +1466,7 @@ function renderGenerationOutput(gen){
         ${images.map(img=>`
           <div style="position:relative;border-radius:10px;overflow:hidden;background:#000;">
             <img src="${img.url}" style="width:100%;object-fit:contain;display:block;cursor:pointer;max-height:500px;" onclick="window.open('${img.url}','_blank')"/>
-            <a href="${img.url}" download style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,.7);color:white;text-decoration:none;font-size:11px;padding:4px 8px;border-radius:6px;backdrop-filter:blur(4px);">↓ Save</a>
+            <button onclick="event.stopPropagation();downloadImage('${img.url}','ad-${Date.now()}-${img.index}.png')" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,.7);color:white;border:none;cursor:pointer;font-size:11px;padding:4px 8px;border-radius:6px;backdrop-filter:blur(4px);">↓ Save</button>
           </div>
         `).join('')}
       </div>

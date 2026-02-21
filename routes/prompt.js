@@ -23,7 +23,7 @@ function buildFallbackPrompt({ brandKit, campaignGoal, referenceStyle, productDe
   if (referenceStyle)      parts.push(`Style reference: ${referenceStyle}.`);
   if (brandKit?.primary_color) parts.push(`Primary color: ${brandKit.primary_color}.`);
   if (brandKit?.font_primary)  parts.push(`Font: ${brandKit.font_primary}.`);
-  parts.push('Clean, professional, high-contrast static ad. Photorealistic product hero shot.');
+  parts.push('Clean, professional, high-contrast static ad. Photorealistic product hero shot. All text and copy in English language only.');
   return parts.join(' ');
 }
 
@@ -61,6 +61,8 @@ Rules:
 - Output ONLY the image generation prompt text. No markdown, no labels, no explanation.
 - Be specific about lighting, composition, mood, color palette, and typography placement.
 - The prompt must be executable by a text-to-image model.
+- ALL text, headlines, taglines, CTAs, and copy in the prompt MUST be in English only. Never use French, Spanish, or any other language.
+- When specifying text overlays, always write them in English (e.g. "Shop Now", "Sale", "Limited Offer").
 - Max 200 words.
     `.trim();
 
@@ -113,6 +115,7 @@ Return a JSON object with:
 }
 
 IMPORTANT: Do NOT copy competitor brand names, logos, or make literal factual claims. Focus on style and structure only.
+IMPORTANT: All prompts and text in the output MUST be written in English only. Never output French, Spanish, or any other language.
     `.trim();
 
     const result = await generateJSON(aiPrompt);
@@ -146,6 +149,8 @@ Generate ${numConcepts} DISTINCT concept directions. For each return:
   "why_distinct": "what makes this concept unique from the others",
   "prompt_template": "ready-to-use image generation prompt for this concept"
 }
+
+IMPORTANT: All prompt_template text MUST be in English only. Any text overlays, headlines, CTAs must use English words. Never use French, Spanish, or any other language.
 
 Return a JSON array of ${numConcepts} concept objects.
     `.trim();
