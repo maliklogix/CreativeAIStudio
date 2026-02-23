@@ -9,6 +9,12 @@ async function getDefaultClientId() {
   return rows[0]?.id || (await db.query('SELECT id FROM clients ORDER BY id LIMIT 1')).rows[0]?.id;
 }
 
+function parseClientId(val) {
+  if (!val || val === 'null' || val === 'undefined') return null;
+  const n = parseInt(val);
+  return isNaN(n) ? null : n;
+}
+
 async function getBrandKit(clientId) {
   const { rows } = await getPool().query('SELECT * FROM brand_kits WHERE client_id=$1', [clientId]);
   return rows[0] || null;
@@ -30,7 +36,7 @@ function buildFallbackPrompt({ brandKit, campaignGoal, referenceStyle, productDe
 // POST /api/prompt/compose
 router.post('/compose', async (req, res, next) => {
   try {
-    const clientId = req.body.clientId || await getDefaultClientId();
+    const clientId = parseClientId(req.body.clientId) || await getDefaultClientId();
     const { referenceStyle, productDesc, intelligenceProfileId, campaignGoal } = req.body;
 
     const brandKit = await getBrandKit(clientId);
@@ -126,7 +132,7 @@ IMPORTANT: All prompts and text in the output MUST be written in English only. N
 // POST /api/prompt/concepts – generate multiple concept directions
 router.post('/concepts', async (req, res, next) => {
   try {
-    const clientId = req.body.clientId || await getDefaultClientId();
+    const clientId = parseClientId(req.body.clientId) || await getDefaultClientId();
     const { referenceImageUrl, campaignGoal, numConcepts = 4 } = req.body;
 
     const brandKit = await getBrandKit(clientId);

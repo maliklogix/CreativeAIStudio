@@ -8,7 +8,7 @@ const { logoUpload } = require('../middleware/upload');
 // GET /api/brand-kit?clientId=
 router.get('/', async (req, res, next) => {
   try {
-    const clientId = req.query.clientId || await getDefaultClientId();
+    const clientId = parseClientId(req.query.clientId) || await getDefaultClientId();
     const { rows } = await getPool().query(
       'SELECT * FROM brand_kits WHERE client_id=$1', [clientId]
     );
@@ -19,7 +19,7 @@ router.get('/', async (req, res, next) => {
 // PUT /api/brand-kit  – upsert
 router.put('/', async (req, res, next) => {
   try {
-    const clientId = req.body.clientId || await getDefaultClientId();
+    const clientId = parseClientId(req.body.clientId) || await getDefaultClientId();
     const {
       brand_name, brand_description,
       primary_color, secondary_color, accent_color,
@@ -54,7 +54,7 @@ router.post('/logo', logoUpload.fields([
   { name: 'logo_light', maxCount: 1 },
 ]), async (req, res, next) => {
   try {
-    const clientId = req.body.clientId || await getDefaultClientId();
+    const clientId = parseClientId(req.body.clientId) || await getDefaultClientId();
     const db = getPool();
 
     // Ensure brand kit row exists
@@ -89,6 +89,12 @@ async function getDefaultClientId() {
     `SELECT id FROM clients WHERE is_default=TRUE ORDER BY id LIMIT 1`
   );
   return rows[0]?.id || (await getPool().query('SELECT id FROM clients ORDER BY id LIMIT 1')).rows[0]?.id;
+}
+
+function parseClientId(val) {
+  if (!val || val === 'null' || val === 'undefined') return null;
+  const n = parseInt(val);
+  return isNaN(n) ? null : n;
 }
 
 module.exports = router;

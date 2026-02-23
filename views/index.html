@@ -891,8 +891,6 @@
     </div>
   </div>
 
-</main>
-
   <!-- ══ SETTINGS ══ -->
   <div id="section-settings" class="section">
     <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;">
@@ -1114,6 +1112,8 @@
     </div>
   </div>
 
+</main>
+
 <!-- ══════════════════ MODALS ══════════════════ -->
 
 <!-- New Client -->
@@ -1297,13 +1297,14 @@ function showSection(name,el){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('section-'+name).classList.add('active');
   if(el)el.classList.add('active');
+  if(name==='settings'){loadSettings();return;}
+  if(!currentClientId){toast('Please create or select a client first','error');return;}
   if(name==='history')loadHistory();
   if(name==='brand')loadBrandKit();
   if(name==='intelligence')loadIntelligence();
   if(name==='assets')loadAssets();
   if(name==='templates')loadTemplates();
   if(name==='campaign')loadCampaignProfiles();
-  if(name==='settings')loadSettings();
 }
 
 // ── Toast ──
@@ -1430,6 +1431,7 @@ function switchBrandTab(name,el){
 
 // ── Generate ──
 async function runGenerate(){
+  if(!currentClientId){toast('Please select a client first','error');return;}
   const prompt=document.getElementById('genPrompt').value.trim();
   if(!prompt){toast('Enter a prompt first','error');return;}
   const btn=document.getElementById('genBtn');

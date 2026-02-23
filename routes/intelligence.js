@@ -9,10 +9,16 @@ async function getDefaultClientId() {
   return rows[0]?.id || (await db.query('SELECT id FROM clients ORDER BY id LIMIT 1')).rows[0]?.id;
 }
 
+function parseClientId(val) {
+  if (!val || val === 'null' || val === 'undefined') return null;
+  const n = parseInt(val);
+  return isNaN(n) ? null : n;
+}
+
 // GET /api/intelligence?clientId=
 router.get('/', async (req, res, next) => {
   try {
-    const clientId = req.query.clientId || await getDefaultClientId();
+    const clientId = parseClientId(req.query.clientId) || await getDefaultClientId();
     const { rows } = await getPool().query(
       'SELECT * FROM brand_intelligence WHERE client_id=$1 ORDER BY created_at DESC', [clientId]
     );
@@ -24,7 +30,7 @@ router.get('/', async (req, res, next) => {
 router.post('/generate', async (req, res, next) => {
   try {
     const { researchText, numProfiles = 3 } = req.body;
-    const clientId = req.body.clientId || await getDefaultClientId();
+    const clientId = parseClientId(req.body.clientId) || await getDefaultClientId();
 
     const kit = (await getPool().query('SELECT * FROM brand_kits WHERE client_id=$1', [clientId])).rows[0];
     const brandContext = kit
@@ -70,7 +76,7 @@ Return a JSON array of ${numProfiles} profile objects.
 // POST /api/intelligence – manual add
 router.post('/', async (req, res, next) => {
   try {
-    const clientId = req.body.clientId || await getDefaultClientId();
+    const clientId = parseClientId(req.body.clientId) || await getDefaultClientId();
     const { persona, pain_point, angle, visual_direction, emotion, copy_hook } = req.body;
     if (!persona?.trim()) return res.status(400).json({ error: 'Persona is required' });
     const { rows } = await getPool().query(

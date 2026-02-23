@@ -59,31 +59,46 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
 });
 
-// ── Boot ──────────────────────────────────────────────────────────────────────
-async function start() {
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('  Static Ads Generator  |  Starting up…');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
-  // Soft-warn only — keys can also be set via the Settings UI in the database
-  if (!process.env.FAL_KEY && !process.env.LEONARDO_API_KEY)
-    console.warn('[WARN] No image generation key set in env — add FAL_KEY or LEONARDO_API_KEY, or use Settings UI');
-  if (!process.env.GEMINI_API_KEY)
-    console.warn('[WARN] GEMINI_API_KEY not set in env — add it in Settings UI or .env');
-
+// ── Database init (runs once, cached for serverless) ─────────────────────────
+let dbReady = false;
+async function ensureDb() {
+  if (dbReady) return;
   try {
     await initDatabase();
+    dbReady = true;
     console.log('[DB]   Database ready');
   } catch (err) {
     console.error('[DB]   Database init failed:', err.message);
-    console.error('       Set DATABASE_URL or DB_* env vars and ensure Postgres is running.');
-    process.exit(1);
+    throw err;
   }
-
-  app.listen(PORT, () => {
-    console.log(`[HTTP] Listening on http://localhost:${PORT}`);
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  });
 }
 
-start();
+// Initialize DB before every request (no-op after first call)
+app.use(async (req, res, next) => {
+  try { await ensureDb(); next(); }
+  catch (err) { res.status(500).json({ error: 'Database not available' }); }
+});
+
+// ── Boot (local dev only) ────────────────────────────────────────────────────
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  (async function start() {
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('  Static Ads Generator  |  Starting up…');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+    if (!process.env.FAL_KEY && !process.env.LEONARDO_API_KEY)
+      console.warn('[WARN] No image generation key set in env — add FAL_KEY or LEONARDO_API_KEY, or use Settings UI');
+    if (!process.env.GEMINI_API_KEY)
+      console.warn('[WARN] GEMINI_API_KEY not set in env — add it in Settings UI or .env');
+
+    await ensureDb();
+
+    app.listen(PORT, () => {
+      console.log(`[HTTP] Listening on http://localhost:${PORT}`);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    });
+  })();
+}
+
+// ── Export for Vercel serverless ──────────────────────────────────────────────
+module.exports = app;

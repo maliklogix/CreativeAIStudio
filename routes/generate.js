@@ -11,6 +11,13 @@ async function getDefaultClientId() {
   return rows[0]?.id || (await db.query('SELECT id FROM clients ORDER BY id LIMIT 1')).rows[0]?.id;
 }
 
+// Sanitize clientId — treat "null", "undefined", empty string as missing
+function parseClientId(val) {
+  if (!val || val === 'null' || val === 'undefined') return null;
+  const n = parseInt(val);
+  return isNaN(n) ? null : n;
+}
+
 async function getBrandKit(clientId) {
   const { rows } = await getPool().query('SELECT * FROM brand_kits WHERE client_id=$1', [clientId]);
   return rows[0] || null;
@@ -75,7 +82,7 @@ router.post('/', async (req, res, next) => {
       use_brand_kit = false, num_images = 1,
       concept, avatar,
     } = req.body;
-    const clientId = req.body.clientId || await getDefaultClientId();
+    const clientId = parseClientId(req.body.clientId) || await getDefaultClientId();
 
     if (!prompt?.trim()) return res.status(400).json({ error: 'Prompt is required' });
 
@@ -150,7 +157,7 @@ router.post('/edit', async (req, res, next) => {
   let genId;
   try {
     const { parentId, editInstruction, num_images = 1 } = req.body;
-    const clientId = req.body.clientId || await getDefaultClientId();
+    const clientId = parseClientId(req.body.clientId) || await getDefaultClientId();
 
     if (!parentId) return res.status(400).json({ error: 'parentId is required' });
     if (!editInstruction?.trim()) return res.status(400).json({ error: 'editInstruction is required' });
@@ -222,7 +229,7 @@ router.post('/edit', async (req, res, next) => {
 // ── GET /api/generate/history ─────────────────────────────────────────────
 router.get('/history', async (req, res, next) => {
   try {
-    const clientId = req.query.clientId || await getDefaultClientId();
+    const clientId = parseClientId(req.query.clientId) || await getDefaultClientId();
     const limit  = Math.min(parseInt(req.query.limit  || '20'), 100);
     const offset = parseInt(req.query.offset || '0');
     const { rows } = await getPool().query(

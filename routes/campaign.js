@@ -12,6 +12,12 @@ async function getDefaultClientId() {
   return rows[0]?.id || (await db.query('SELECT id FROM clients ORDER BY id LIMIT 1')).rows[0]?.id;
 }
 
+function parseClientId(val) {
+  if (!val || val === 'null' || val === 'undefined') return null;
+  const n = parseInt(val);
+  return isNaN(n) ? null : n;
+}
+
 async function getBrandKit(clientId) {
   const { rows } = await getPool().query('SELECT * FROM brand_kits WHERE client_id=$1', [clientId]);
   return rows[0] || null;
@@ -31,7 +37,7 @@ function buildFallbackPrompt(item, brandKit) {
 // POST /api/campaign/plan – build generation matrix from profiles
 router.post('/plan', async (req, res, next) => {
   try {
-    const clientId = req.body.clientId || await getDefaultClientId();
+    const clientId = parseClientId(req.body.clientId) || await getDefaultClientId();
     const {
       profileIds = [],
       campaignGoal = '',
@@ -79,7 +85,7 @@ router.post('/plan', async (req, res, next) => {
 // POST /api/campaign/generate – execute the plan
 router.post('/generate', async (req, res, next) => {
   try {
-    const clientId = req.body.clientId || await getDefaultClientId();
+    const clientId = parseClientId(req.body.clientId) || await getDefaultClientId();
     const { plan = [], size = '1024x1024' } = req.body;
 
     if (!plan.length) return res.status(400).json({ error: 'Plan is empty' });

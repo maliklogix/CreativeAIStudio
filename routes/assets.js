@@ -13,10 +13,16 @@ async function getDefaultClientId() {
   return rows[0]?.id || (await db.query('SELECT id FROM clients ORDER BY id LIMIT 1')).rows[0]?.id;
 }
 
+function parseClientId(val) {
+  if (!val || val === 'null' || val === 'undefined') return null;
+  const n = parseInt(val);
+  return isNaN(n) ? null : n;
+}
+
 // GET /api/assets?clientId=&category=&search=
 router.get('/', async (req, res, next) => {
   try {
-    const clientId = req.query.clientId || await getDefaultClientId();
+    const clientId = parseClientId(req.query.clientId) || await getDefaultClientId();
     let sql = 'SELECT * FROM assets WHERE client_id=$1';
     const params = [clientId];
     if (req.query.category) { sql += ` AND category=$${params.length + 1}`; params.push(req.query.category); }
@@ -34,7 +40,7 @@ router.get('/', async (req, res, next) => {
 router.post('/', assetUpload.array('files', 20), async (req, res, next) => {
   try {
     if (!req.files?.length) return res.status(400).json({ error: 'No files uploaded' });
-    const clientId = req.body.clientId || await getDefaultClientId();
+    const clientId = parseClientId(req.body.clientId) || await getDefaultClientId();
     const category = CATEGORIES.includes(req.body.category) ? req.body.category : 'other';
     const db = getPool();
     const inserted = [];
