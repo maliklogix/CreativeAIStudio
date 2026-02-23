@@ -56,6 +56,24 @@ function single(subdir, field = 'file') {
   }).single(field);
 }
 
+// Media filter — accepts images + video
+function mediaFilter(req, file, cb) {
+  const allowed = [
+    'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml',
+    'video/mp4', 'video/quicktime', 'video/webm', 'video/x-msvideo',
+  ];
+  if (allowed.includes(file.mimetype)) return cb(null, true);
+  cb(new Error(`Invalid file type: ${file.mimetype}. Only images and videos are allowed.`));
+}
+
+const AUTOPOSTER_MAX_MB = parseInt(process.env.AUTOPOSTER_MAX_FILE_SIZE_MB || '100');
+
+const autoposterUpload = multer({
+  storage: makeStorage('autoposter'),
+  fileFilter: mediaFilter,
+  limits: { fileSize: AUTOPOSTER_MAX_MB * 1024 * 1024 },
+});
+
 // Resolve a stored path to absolute FS path safely
 function resolveUpload(filePath) {
   const base = path.join(__dirname, '..', 'public');
@@ -64,4 +82,4 @@ function resolveUpload(filePath) {
   return resolved;
 }
 
-module.exports = { logoUpload, templateUpload, assetUpload, single, resolveUpload };
+module.exports = { logoUpload, templateUpload, assetUpload, autoposterUpload, single, resolveUpload };

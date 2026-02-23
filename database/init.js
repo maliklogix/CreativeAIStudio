@@ -159,6 +159,56 @@ async function initDatabase() {
   await db.query(`CREATE INDEX IF NOT EXISTS idx_templates_client     ON templates(client_id)`);
   await db.query(`CREATE INDEX IF NOT EXISTS idx_intelligence_client  ON brand_intelligence(client_id)`);
 
+  // ── AutoPoster tables ─────────────────────────────────────────────────────
+
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS social_connections (
+      id                SERIAL PRIMARY KEY,
+      client_id         INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+      platform          TEXT NOT NULL,
+      access_token      TEXT,
+      refresh_token     TEXT,
+      token_expires_at  TIMESTAMPTZ,
+      platform_user_id  TEXT,
+      platform_username TEXT,
+      status            TEXT NOT NULL DEFAULT 'disconnected',
+      created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(client_id, platform)
+    );
+  `);
+
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS social_posts (
+      id               SERIAL PRIMARY KEY,
+      client_id        INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+      batch_id         TEXT,
+      platform         TEXT NOT NULL,
+      post_type        TEXT NOT NULL DEFAULT 'image',
+      title            TEXT,
+      description      TEXT,
+      tags             JSONB DEFAULT '[]',
+      media_url        TEXT,
+      media_path       TEXT,
+      thumbnail_url    TEXT,
+      content_width    INTEGER,
+      content_height   INTEGER,
+      source           TEXT NOT NULL DEFAULT 'manual',
+      status           TEXT NOT NULL DEFAULT 'draft',
+      scheduled_at     TIMESTAMPTZ,
+      posted_at        TIMESTAMPTZ,
+      platform_post_id TEXT,
+      error_message    TEXT,
+      created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await db.query(`CREATE INDEX IF NOT EXISTS idx_social_conn_client   ON social_connections(client_id)`);
+  await db.query(`CREATE INDEX IF NOT EXISTS idx_social_posts_client  ON social_posts(client_id)`);
+  await db.query(`CREATE INDEX IF NOT EXISTS idx_social_posts_status  ON social_posts(status)`);
+  await db.query(`CREATE INDEX IF NOT EXISTS idx_social_posts_batch   ON social_posts(batch_id)`);
+
   // App-wide settings (API keys, preferences) — key/value store
   await db.query(`
     CREATE TABLE IF NOT EXISTS app_settings (

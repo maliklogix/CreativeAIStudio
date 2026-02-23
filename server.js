@@ -20,6 +20,7 @@ app.use('/api/generate',    require('./routes/generate'));
 app.use('/api/prompt',      require('./routes/prompt'));
 app.use('/api/campaign',    require('./routes/campaign'));
 app.use('/api/intelligence',require('./routes/intelligence'));
+app.use('/api/autoposter', require('./routes/autoposter'));
 app.use('/api/settings',   require('./routes/settings'));
 
 // ── Image download proxy (avoids CORS issues with external URLs) ─────────

@@ -335,6 +335,34 @@
     .section-title{font-size:13px;font-weight:600;color:var(--muted2);margin-bottom:12px;}
     .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
     .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+
+    /* ── AutoPoster ── */
+    .ap-tab{
+      flex:1;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;
+      background:transparent;border:none;color:var(--muted);cursor:pointer;transition:all .15s;
+    }
+    .ap-tab:hover{background:var(--surface2);color:var(--text);}
+    .ap-tab.active{background:linear-gradient(135deg,#6366f1,#7c3aed);color:white;box-shadow:0 0 12px rgba(99,102,241,.25);}
+    .ap-tab-content{display:none;}
+    .ap-tab-content.active{display:block;}
+    .ap-filter{
+      padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;
+      background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .15s;
+    }
+    .ap-filter:hover{border-color:var(--accent);color:var(--text);}
+    .ap-filter.active{background:var(--accent);border-color:var(--accent);color:white;}
+    .ap-post-card{
+      background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .15s;
+    }
+    .ap-post-card:hover{border-color:var(--accent);}
+    .ap-platform-badge{
+      display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;
+      font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;
+    }
+    .ap-status-badge{
+      display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;
+      font-size:10px;font-weight:600;
+    }
   </style>
 </head>
 <body>
@@ -393,6 +421,12 @@
     <a class="nav-item" data-section="intelligence" onclick="showSection('intelligence',this)">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
       Brand Intelligence
+    </a>
+
+    <div class="nav-section-label">Social</div>
+    <a class="nav-item" data-section="autoposter" onclick="showSection('autoposter',this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+      AutoPoster
     </a>
 
     <div class="nav-section-label">Library</div>
@@ -891,6 +925,151 @@
     </div>
   </div>
 
+  <!-- ══ AUTOPOSTER ══ -->
+  <div id="section-autoposter" class="section">
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;">
+      <div>
+        <h1 class="page-title">AutoPoster</h1>
+        <p class="page-sub">Create and publish content across social platforms</p>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:4px;margin-bottom:24px;background:var(--surface);border-radius:10px;padding:4px;border:1px solid var(--border);">
+      <button class="ap-tab active" onclick="switchAPTab('upload',this)">Manual Upload</button>
+      <button class="ap-tab" onclick="switchAPTab('aicreate',this)">AI Create Post</button>
+      <button class="ap-tab" onclick="switchAPTab('queue',this)">Post Queue</button>
+    </div>
+
+    <!-- ── Tab 1: Manual Upload ── -->
+    <div id="ap-tab-upload" class="ap-tab-content active">
+      <!-- Video Platforms -->
+      <div class="card" style="padding:20px;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+          <span style="font-size:20px;">🎬</span>
+          <div>
+            <div style="font-size:15px;font-weight:600;">Video Platforms</div>
+            <div style="font-size:12px;color:var(--muted);">Instagram Reels · TikTok · YouTube Shorts</div>
+          </div>
+        </div>
+        <div id="apVideoDropZone" class="drop-zone" style="border:2px dashed var(--border2);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all .2s;"
+             ondragover="event.preventDefault();this.style.borderColor='var(--accent)';this.style.background='rgba(99,102,241,.05)'"
+             ondragleave="this.style.borderColor='var(--border2)';this.style.background='transparent'"
+             ondrop="event.preventDefault();this.style.borderColor='var(--border2)';this.style.background='transparent';handleAPVideoUpload(event.dataTransfer.files[0])"
+             onclick="document.getElementById('apVideoInput').click()">
+          <svg style="width:40px;height:40px;color:var(--muted);margin:0 auto 10px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          <div style="font-size:13px;font-weight:500;color:var(--muted2);">Drag & drop a video or click to browse</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;">MP4, MOV, WebM — up to 100MB</div>
+        </div>
+        <input type="file" id="apVideoInput" accept="video/*" style="display:none" onchange="handleAPVideoUpload(this.files[0])"/>
+        <textarea id="apVideoDesc" class="input" rows="2" placeholder="Describe your video content (optional — helps AI generate better metadata)..." style="margin-top:12px;"></textarea>
+        <button id="apVideoUploadBtn" onclick="uploadAPVideo()" class="btn btn-primary" style="margin-top:10px;width:100%;display:none;">Upload & Generate Metadata</button>
+      </div>
+
+      <!-- Image Platforms -->
+      <div class="card" style="padding:20px;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+          <span style="font-size:20px;">🖼️</span>
+          <div>
+            <div style="font-size:15px;font-weight:600;">Image Platforms</div>
+            <div style="font-size:12px;color:var(--muted);">LinkedIn · Facebook · Pinterest</div>
+          </div>
+        </div>
+        <div id="apImageDropZone" class="drop-zone" style="border:2px dashed var(--border2);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all .2s;"
+             ondragover="event.preventDefault();this.style.borderColor='var(--accent)';this.style.background='rgba(99,102,241,.05)'"
+             ondragleave="this.style.borderColor='var(--border2)';this.style.background='transparent'"
+             ondrop="event.preventDefault();this.style.borderColor='var(--border2)';this.style.background='transparent';handleAPImageUpload(event.dataTransfer.files[0])"
+             onclick="document.getElementById('apImageInput').click()">
+          <svg style="width:40px;height:40px;color:var(--muted);margin:0 auto 10px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          <div style="font-size:13px;font-weight:500;color:var(--muted2);">Drag & drop an image or click to browse</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;">JPG, PNG, WebP — up to 100MB</div>
+        </div>
+        <input type="file" id="apImageInput" accept="image/*" style="display:none" onchange="handleAPImageUpload(this.files[0])"/>
+        <textarea id="apImageDesc" class="input" rows="2" placeholder="Describe your image content (optional — helps AI generate better metadata)..." style="margin-top:12px;"></textarea>
+        <button id="apImageUploadBtn" onclick="uploadAPImage()" class="btn btn-primary" style="margin-top:10px;width:100%;display:none;">Upload & Generate Metadata</button>
+      </div>
+
+      <!-- Upload results -->
+      <div id="apUploadResults"></div>
+    </div>
+
+    <!-- ── Tab 2: AI Create Post ── -->
+    <div id="ap-tab-aicreate" class="ap-tab-content">
+      <div class="card" style="padding:24px;margin-bottom:20px;">
+        <div style="font-size:15px;font-weight:600;margin-bottom:16px;">Describe your post idea</div>
+        <textarea id="apAIDesc" class="input" rows="3" placeholder="e.g. Announce our summer sale with 30% off all products, bright and energetic visuals..." style="margin-bottom:14px;"></textarea>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+          <div>
+            <label class="label">Tone</label>
+            <select id="apAITone" class="input">
+              <option value="Professional">Professional</option>
+              <option value="Casual">Casual</option>
+              <option value="Exciting">Exciting</option>
+              <option value="Inspirational">Inspirational</option>
+              <option value="Informative">Informative</option>
+            </select>
+          </div>
+          <div>
+            <label class="label">Use Brand Kit</label>
+            <div style="display:flex;align-items:center;gap:10px;padding-top:8px;">
+              <label class="toggle" style="cursor:pointer;">
+                <input type="checkbox" id="apAIBrandKit"/>
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+              <span style="font-size:12px;color:var(--muted2);">Apply brand colors & tone</span>
+            </div>
+          </div>
+        </div>
+
+        <label class="label">Platforms</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+          <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;">
+            <input type="checkbox" class="ap-platform-cb" value="instagram" checked/> Instagram
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;">
+            <input type="checkbox" class="ap-platform-cb" value="tiktok" checked/> TikTok
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;">
+            <input type="checkbox" class="ap-platform-cb" value="youtube" checked/> YouTube
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;">
+            <input type="checkbox" class="ap-platform-cb" value="linkedin" checked/> LinkedIn
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;">
+            <input type="checkbox" class="ap-platform-cb" value="facebook" checked/> Facebook
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;">
+            <input type="checkbox" class="ap-platform-cb" value="pinterest" checked/> Pinterest
+          </label>
+        </div>
+
+        <button onclick="runAICreatePost()" class="btn btn-primary" style="width:100%;gap:8px;">
+          <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Auto Create Post
+        </button>
+      </div>
+
+      <div id="apAIResults"></div>
+    </div>
+
+    <!-- ── Tab 3: Post Queue ── -->
+    <div id="ap-tab-queue" class="ap-tab-content">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <button class="ap-filter active" onclick="filterAPQueue('all',this)">All</button>
+        <button class="ap-filter" onclick="filterAPQueue('draft',this)">Drafts</button>
+        <button class="ap-filter" onclick="filterAPQueue('scheduled',this)">Scheduled</button>
+        <button class="ap-filter" onclick="filterAPQueue('posted',this)">Posted</button>
+        <button class="ap-filter" onclick="filterAPQueue('failed',this)">Failed</button>
+        <button onclick="loadAPQueue()" class="btn btn-secondary btn-sm" style="margin-left:auto;">Refresh</button>
+      </div>
+      <div id="apQueueGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;">
+        <div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">No posts yet. Upload content or use AI Create Post.</div>
+      </div>
+    </div>
+  </div>
+
   <!-- ══ SETTINGS ══ -->
   <div id="section-settings" class="section">
     <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;">
@@ -1110,6 +1289,14 @@
         <div class="skeleton" style="height:60px;"></div>
       </div>
     </div>
+
+    <!-- Social Platform Connections -->
+    <div style="margin-top:20px;">
+      <div style="font-size:16px;font-weight:700;margin-bottom:16px;">Social Platform Connections</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;" id="socialConnectionsGrid">
+      </div>
+    </div>
+
   </div>
 
 </main>
@@ -1297,7 +1484,8 @@ function showSection(name,el){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('section-'+name).classList.add('active');
   if(el)el.classList.add('active');
-  if(name==='settings'){loadSettings();return;}
+  if(name==='settings'){loadSettings();loadSocialConnections();return;}
+  if(name==='autoposter'){loadAPQueue();return;}
   if(!currentClientId){toast('Please create or select a client first','error');return;}
   if(name==='history')loadHistory();
   if(name==='brand')loadBrandKit();
@@ -2035,6 +2223,302 @@ async function removeKey(dbKey,statusElId){
 function toggleVisible(inputId){
   const el=document.getElementById(inputId);
   el.type=el.type==='password'?'text':'password';
+}
+
+// ══════════════════ AUTOPOSTER ══════════════════
+
+const AP_PLATFORM_COLORS={
+  instagram:'background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:white;',
+  tiktok:'background:#010101;color:white;',
+  youtube:'background:#ff0000;color:white;',
+  linkedin:'background:#0077b5;color:white;',
+  facebook:'background:#1877f2;color:white;',
+  pinterest:'background:#e60023;color:white;',
+};
+const AP_STATUS_COLORS={
+  draft:'background:var(--surface2);color:var(--muted2);border:1px solid var(--border);',
+  scheduled:'background:rgba(59,130,246,.15);color:#60a5fa;',
+  posting:'background:rgba(251,191,36,.15);color:#fbbf24;',
+  posted:'background:rgba(52,211,153,.15);color:#34d399;',
+  failed:'background:rgba(248,113,113,.15);color:#f87171;',
+};
+
+let _apVideoFile=null;
+let _apImageFile=null;
+let _apQueueFilter='all';
+
+function switchAPTab(tab,el){
+  document.querySelectorAll('.ap-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.ap-tab-content').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('ap-tab-'+tab).classList.add('active');
+  if(tab==='queue')loadAPQueue();
+}
+
+function handleAPVideoUpload(file){
+  if(!file)return;
+  _apVideoFile=file;
+  const zone=document.getElementById('apVideoDropZone');
+  zone.innerHTML=`<div style="display:flex;align-items:center;gap:12px;">
+    <svg style="width:32px;height:32px;color:var(--accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+    <div style="text-align:left;">
+      <div style="font-size:13px;font-weight:500;color:var(--text);">${file.name}</div>
+      <div style="font-size:11px;color:var(--muted);">${(file.size/1024/1024).toFixed(1)} MB</div>
+    </div>
+  </div>`;
+  document.getElementById('apVideoUploadBtn').style.display='block';
+}
+
+function handleAPImageUpload(file){
+  if(!file)return;
+  _apImageFile=file;
+  const zone=document.getElementById('apImageDropZone');
+  zone.innerHTML=`<div style="display:flex;align-items:center;gap:12px;">
+    <svg style="width:32px;height:32px;color:var(--accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+    <div style="text-align:left;">
+      <div style="font-size:13px;font-weight:500;color:var(--text);">${file.name}</div>
+      <div style="font-size:11px;color:var(--muted);">${(file.size/1024/1024).toFixed(1)} MB</div>
+    </div>
+  </div>`;
+  document.getElementById('apImageUploadBtn').style.display='block';
+}
+
+async function uploadAPVideo(){
+  if(!_apVideoFile){toast('Select a video first','error');return;}
+  const btn=document.getElementById('apVideoUploadBtn');
+  btn.disabled=true;btn.textContent='Uploading & generating metadata...';
+  try{
+    const fd=new FormData();
+    fd.append('video',_apVideoFile);
+    fd.append('description',document.getElementById('apVideoDesc').value);
+    if(currentClientId)fd.append('clientId',currentClientId);
+    const res=await fetch('/api/autoposter/upload-video',{method:'POST',body:fd});
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||'Upload failed');
+    toast('Video uploaded! AI metadata generated for 3 platforms.');
+    renderAPUploadResults(data.posts);
+    _apVideoFile=null;
+    btn.style.display='none';
+  }catch(e){toast(e.message,'error');}
+  finally{btn.disabled=false;btn.textContent='Upload & Generate Metadata';}
+}
+
+async function uploadAPImage(){
+  if(!_apImageFile){toast('Select an image first','error');return;}
+  const btn=document.getElementById('apImageUploadBtn');
+  btn.disabled=true;btn.textContent='Uploading & generating metadata...';
+  try{
+    const fd=new FormData();
+    fd.append('image',_apImageFile);
+    fd.append('description',document.getElementById('apImageDesc').value);
+    if(currentClientId)fd.append('clientId',currentClientId);
+    const res=await fetch('/api/autoposter/upload-image',{method:'POST',body:fd});
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||'Upload failed');
+    toast('Image uploaded! AI metadata generated for 3 platforms.');
+    renderAPUploadResults(data.posts);
+    _apImageFile=null;
+    btn.style.display='none';
+  }catch(e){toast(e.message,'error');}
+  finally{btn.disabled=false;btn.textContent='Upload & Generate Metadata';}
+}
+
+function renderAPUploadResults(posts){
+  const container=document.getElementById('apUploadResults');
+  container.innerHTML=`<div style="font-size:14px;font-weight:600;margin-bottom:12px;">Generated Posts</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;">
+      ${posts.map(p=>renderAPPostCard(p)).join('')}
+    </div>`;
+}
+
+async function runAICreatePost(){
+  const desc=document.getElementById('apAIDesc').value.trim();
+  if(!desc){toast('Enter a post description','error');return;}
+  const platforms=[...document.querySelectorAll('.ap-platform-cb:checked')].map(c=>c.value);
+  if(!platforms.length){toast('Select at least one platform','error');return;}
+  const tone=document.getElementById('apAITone').value;
+  const useBrandKit=document.getElementById('apAIBrandKit').checked;
+
+  const resultsEl=document.getElementById('apAIResults');
+  resultsEl.innerHTML=`<div style="text-align:center;padding:40px;">
+    <div class="spinner" style="margin:0 auto 16px;width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;"></div>
+    <div style="font-size:13px;color:var(--muted);">Generating platform-specific content...</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px;">This may take a moment as images are generated for each platform</div>
+  </div>`;
+
+  try{
+    const body={description:desc,tone,platforms,useBrandKit};
+    if(currentClientId)body.clientId=currentClientId;
+    const data=await api('/api/autoposter/ai-create',{method:'POST',body:JSON.stringify(body)});
+    toast(`Created ${data.posts.length} posts across platforms!`);
+    resultsEl.innerHTML=`<div style="font-size:14px;font-weight:600;margin-bottom:12px;">AI-Created Posts</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;">
+        ${data.posts.map(p=>renderAPPostCard(p)).join('')}
+      </div>`;
+  }catch(e){
+    toast(e.message,'error');
+    resultsEl.innerHTML='';
+  }
+}
+
+function renderAPPostCard(post){
+  const tags=Array.isArray(post.tags)?post.tags:(typeof post.tags==='string'?JSON.parse(post.tags||'[]'):post.tags||[]);
+  const platform=post.platform||'unknown';
+  const status=post.status||'draft';
+  const mediaPreview=post.media_url
+    ?`<img src="${post.media_url}" style="width:100%;height:160px;object-fit:cover;" onerror="this.style.display='none'"/>`
+    :post.media_path
+    ?`<div style="height:160px;background:var(--surface2);display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:11px;color:var(--muted);">${post.post_type==='video'?'Video':'Image'} — ${post.media_path.split('/').pop()}</span>
+      </div>`
+    :post.thumbnail_url
+    ?`<img src="${post.thumbnail_url}" style="width:100%;height:160px;object-fit:cover;" onerror="this.style.display='none'"/>`
+    :`<div style="height:100px;background:var(--surface2);display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:11px;color:var(--muted);">No media</span>
+      </div>`;
+
+  return`<div class="ap-post-card">
+    ${mediaPreview}
+    <div style="padding:14px;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+        <span class="ap-platform-badge" style="${AP_PLATFORM_COLORS[platform]||''}">${platform}</span>
+        <span class="ap-status-badge" style="${AP_STATUS_COLORS[status]||''}">${status}</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--muted);">${post.content_width||''}x${post.content_height||''}</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${post.title||'Untitled'}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${post.description||''}</div>
+      ${tags.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;">${tags.slice(0,5).map(t=>`<span style="font-size:10px;padding:2px 6px;background:var(--surface2);border-radius:4px;color:var(--muted2);">#${t}</span>`).join('')}</div>`:''}
+      <div style="display:flex;gap:6px;">
+        ${status==='draft'||status==='failed'?`<button onclick="publishAPPost(${post.id})" class="btn btn-primary btn-sm" style="flex:1;font-size:11px;">Publish</button>`:''}
+        <button onclick="editAPPost(${post.id})" class="btn btn-secondary btn-sm" style="font-size:11px;">Edit</button>
+        <button onclick="deleteAPPost(${post.id})" class="btn btn-danger btn-sm" style="font-size:11px;">Delete</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function loadAPQueue(){
+  const grid=document.getElementById('apQueueGrid');
+  try{
+    const params=new URLSearchParams();
+    if(currentClientId)params.set('clientId',currentClientId);
+    if(_apQueueFilter&&_apQueueFilter!=='all')params.set('status',_apQueueFilter);
+    const data=await api('/api/autoposter/posts?'+params.toString());
+    if(!data.posts.length){
+      grid.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;grid-column:1/-1;">No posts found.</div>';
+      return;
+    }
+    grid.innerHTML=data.posts.map(p=>renderAPPostCard(p)).join('');
+  }catch(e){
+    grid.innerHTML=`<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;grid-column:1/-1;">Error loading posts: ${e.message}</div>`;
+  }
+}
+
+function filterAPQueue(status,el){
+  document.querySelectorAll('.ap-filter').forEach(f=>f.classList.remove('active'));
+  el.classList.add('active');
+  _apQueueFilter=status;
+  loadAPQueue();
+}
+
+async function publishAPPost(id){
+  if(!confirm('Publish this post?'))return;
+  try{
+    const data=await api(`/api/autoposter/posts/${id}/publish`,{method:'POST'});
+    toast(data.message||'Published!');
+    loadAPQueue();
+  }catch(e){toast(e.message,'error');}
+}
+
+async function deleteAPPost(id){
+  if(!confirm('Delete this post?'))return;
+  try{
+    await api(`/api/autoposter/posts/${id}`,{method:'DELETE'});
+    toast('Post deleted');
+    loadAPQueue();
+  }catch(e){toast(e.message,'error');}
+}
+
+async function editAPPost(id){
+  const newTitle=prompt('Edit post title:');
+  if(newTitle===null)return;
+  const newDesc=prompt('Edit post description:');
+  try{
+    const body={title:newTitle};
+    if(newDesc!==null)body.description=newDesc;
+    await api(`/api/autoposter/posts/${id}`,{method:'PATCH',body:JSON.stringify(body)});
+    toast('Post updated');
+    loadAPQueue();
+  }catch(e){toast(e.message,'error');}
+}
+
+// ── Social Connections (Settings page) ──
+
+const SOCIAL_PLATFORMS=[
+  {id:'facebook',  name:'Facebook',  icon:'f',gradient:'linear-gradient(135deg,#1877f2,#0d65d9)'},
+  {id:'instagram', name:'Instagram', icon:'IG',gradient:'linear-gradient(135deg,#f09433,#dc2743)'},
+  {id:'youtube',   name:'YouTube',   icon:'YT',gradient:'linear-gradient(135deg,#ff0000,#cc0000)'},
+  {id:'linkedin',  name:'LinkedIn',  icon:'in',gradient:'linear-gradient(135deg,#0077b5,#005e93)'},
+  {id:'tiktok',    name:'TikTok',    icon:'TT',gradient:'linear-gradient(135deg,#010101,#333)'},
+  {id:'pinterest', name:'Pinterest', icon:'P',gradient:'linear-gradient(135deg,#e60023,#c8001f)'},
+];
+
+async function loadSocialConnections(){
+  const grid=document.getElementById('socialConnectionsGrid');
+  if(!grid)return;
+  let connections=[];
+  try{
+    const params=currentClientId?`?clientId=${currentClientId}`:'';
+    const data=await api('/api/autoposter/connections'+params);
+    connections=data.connections||[];
+  }catch(e){console.warn('Social connections load:',e.message);}
+
+  grid.innerHTML=SOCIAL_PLATFORMS.map(p=>{
+    const conn=connections.find(c=>c.platform===p.id);
+    const connected=conn&&conn.status==='connected';
+    return`<div class="card" style="padding:16px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="width:36px;height:36px;border-radius:8px;background:${p.gradient};display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:11px;">${p.icon}</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;">${p.name}</div>
+          <div style="font-size:11px;color:var(--muted);">${connected?conn.platform_username||'Connected':'Not connected'}</div>
+        </div>
+        <span class="badge ${connected?'badge-green':'badge-red'}" style="font-size:10px;">${connected?'Connected':'Disconnected'}</span>
+      </div>
+      <label class="label">Access Token</label>
+      <div style="display:flex;gap:6px;margin-bottom:8px;">
+        <input type="password" id="social_token_${p.id}" class="input" placeholder="Paste ${p.name} access token…" autocomplete="new-password" style="font-size:11px;"/>
+        <button onclick="toggleVisible('social_token_${p.id}')" class="btn btn-secondary btn-sm" style="flex-shrink:0;font-size:11px;">👁</button>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button onclick="connectSocialPlatform('${p.id}')" class="btn btn-primary btn-sm" style="flex:1;font-size:11px;">Connect</button>
+        ${connected?`<button onclick="disconnectSocialPlatform('${p.id}')" class="btn btn-danger btn-sm" style="font-size:11px;">Disconnect</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function connectSocialPlatform(platform){
+  const token=document.getElementById('social_token_'+platform).value.trim();
+  if(!token){toast('Enter an access token','error');return;}
+  try{
+    const body={platform,access_token:token};
+    if(currentClientId)body.clientId=currentClientId;
+    await api('/api/autoposter/connections',{method:'POST',body:JSON.stringify(body)});
+    document.getElementById('social_token_'+platform).value='';
+    toast(`${platform} connected!`);
+    loadSocialConnections();
+  }catch(e){toast(e.message,'error');}
+}
+
+async function disconnectSocialPlatform(platform){
+  if(!confirm(`Disconnect ${platform}?`))return;
+  try{
+    const params=currentClientId?`?clientId=${currentClientId}`:'';
+    await api(`/api/autoposter/connections/${platform}${params}`,{method:'DELETE'});
+    toast(`${platform} disconnected`);
+    loadSocialConnections();
+  }catch(e){toast(e.message,'error');}
 }
 
 // ── Theme ──
